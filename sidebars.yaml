@@ -1,0 +1,29 @@
+- page: index.md
+- group: Authentication
+  items:
+    - page: toast-authentication-api.yaml
+# api-reference:
+#   - page: index.md
+#   - page: analytics.reference.page.yaml
+#   - page: authentication.reference.page.yaml
+#   - page: cashmanagement.reference.page.yaml
+#   - page: configuration.reference.page.yaml
+#   - page: creditcards.reference.page.yaml
+#   - page: devicedetails.reference.page.yaml
+#   - page: kitchen.reference.page.yaml
+#   - page: labor.reference.page.yaml
+#   - page: menus.reference.page.yaml
+#   - page: menusV3.reference.page.yaml
+#   - page: ordermgmt.configuration.reference.page.yaml
+#   - page: orders.reference.page.yaml
+#   - page: packaging.reference.page.yaml
+#   - page: partners.reference.page.yaml
+#   - page: rx.availability.service.reference.page.yaml
+#   - page: restaurants.reference.page.yaml
+#   - page: stock.reference.page.yaml
+#   - separator: API specifications 
+#   - page: giftcards.reference.page.yaml
+#   - page: loyalty.reference.page.yaml
+#   - page: tender.reference.page.yaml
+
+  

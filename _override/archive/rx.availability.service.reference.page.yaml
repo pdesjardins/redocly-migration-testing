@@ -1,0 +1,20 @@
+type: reference-docs
+definitionId:  restaurantAvailabilityService
+label: Restaurant availability 
+settings:
+  generateCodeSamples:
+    languages:
+      - lang: curl
+      - lang: Java
+      - lang: Python
+      - lang: Node.js
+      - lang: C#
+  showConsole: false
+  hideHostname: true
+  hideDownloadButton: false
+  sortPropsAlphabetically: true
+  schemaDefinitionsTagName: Data definitions
+  hideTryItPanel: true
+  showAccessMode: true
+  downloadDefinitionUrl: https://doc.toasttab.com/toast-api-specifications/toast-restaurant-availability-api-docs.yaml
+  

@@ -1,0 +1,67 @@
+meta:
+  title: Toast API reference documentation
+  description: |
+    Toast API reference documentation. The API reference documentation provides 
+    detailed information about the endpoints, parameters, and data objects for 
+    Toast platform APIs.
+  siteUrl: https://toastintegrations.redoc.ly/
+logo: images/toast-circle-color.png
+linkChecker:
+  severity: warning
+  options:
+    CheckExternal: false
+toc:
+  enable: true
+
+oasDefinitions:
+  analytics: https://api.redocly.com/registry/bundle/toastintegrations/performance/v1/openapi.yaml
+  authentication: https://api.redocly.com/registry/bundle/toastintegrations/authentication/v1/openapi.yaml
+  cashManagement: https://api.redoc.ly/registry/bundle/toastintegrations/cashManagement/v1/openapi.yaml
+  creditCards: https://api.redoc.ly/registry/bundle/toastintegrations/creditCards/v1/openapi.yaml
+  configuration: https://api.redoc.ly/registry/bundle/toastintegrations/configuration/v2/openapi.yaml
+  deviceDetails: https://api.redocly.com/registry/bundle/toastintegrations/deviceDetails/v1/openapi.yaml?branch=main
+  kitchen: https://api.redoc.ly/registry/bundle/toastintegrations/kitchen/v1/openapi.yaml
+  labor: https://api.redoc.ly/registry/bundle/toastintegrations/labor/v1/openapi.yaml
+  menus: https://api.redoc.ly/registry/bundle/toastintegrations/menus/v2/openapi.yaml
+  menusV3: https://api.redocly.com/registry/bundle/toastintegrations/menusV3/v3/openapi.yaml?branch=main
+  orders: https://api.redoc.ly/registry/bundle/toastintegrations/Orders/v2/openapi.yaml
+  orderManagementConfiguration: https://api.redoc.ly/registry/bundle/toastintegrations/orderManagementConfiguration/v1/openapi.yaml
+  partners: https://api.redoc.ly/registry/bundle/toastintegrations/partners/v1/openapi.yaml
+  packaging: https://api.redocly.com/registry/bundle/toastintegrations/PackagingApi/v1/openapi.yaml?branch=main
+  restaurantAvailabilityService: https://api.redoc.ly/registry/bundle/toastintegrations/restaurantAvailabilityService/v1/openapi.yaml
+  restaurants: https://api.redoc.ly/registry/bundle/toastintegrations/restaurants/v1/openapi.yaml
+  giftCards: https://api.redoc.ly/registry/bundle/toastintegrations/giftCards/v1/openapi.yaml
+  stock: https://api.redoc.ly/registry/bundle/toastintegrations/stock/v1/openapi.yaml
+  loyalty: https://api.redoc.ly/registry/bundle/toastintegrations/loyalty/v1/openapi.yaml
+  tender: https://api.redocly.com/registry/bundle/toastintegrations/tender/v1/openapi.yaml
+  # add links to definitions in our API registry by using a fully qualified URL.
+stylesheets:
+  - https://fonts.googleapis.com/css?family=Source+Code+Pro:300,400,600,700&display=swap
+  - https://doc.toasttab.com/doc/toast-tailwind.css
+analytics:
+  ga:
+    head: true
+    trackingId: UA-100322826-2
+#scripts:
+#  - ./static/intercom.js
+nav:
+
+  - label: Cookbook
+    href: https://doc.toasttab.com/doc/cookbook/index.html
+
+  - label: Developer guide
+    href: https://doc.toasttab.com/doc/devguide/index.html
+
+  - label: API reference
+    page: index.md
+
+  - label: Platform guide
+    href: https://doc.toasttab.com/doc/platformguide/index.html
+
+  - label: Release notes
+    href: https://doc.toasttab.com/doc/relnotes/index.html
+
+  - search: true
+
+disableLastModified: true
+footer: {}
