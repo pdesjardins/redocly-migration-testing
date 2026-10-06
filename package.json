@@ -10,6 +10,6 @@
     "clean": "redocly-portal clean"
   },
   "dependencies": {
-    "@redocly/realm": "0.137.2"
+    "@redocly/redoc-revel": "*"
   }
 }
