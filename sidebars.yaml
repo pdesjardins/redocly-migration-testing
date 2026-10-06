@@ -1,7 +1,13 @@
 - page: index.md
+- group: Analytics
+  items:
+    - page: ./analytics
 - group: Authentication
   items:
     - page: toast-authentication-api.yaml
+- group: Cash management
+  items:
+    - page: ./cash-management
 # api-reference:
 #   - page: index.md
 #   - page: analytics.reference.page.yaml

@@ -1,0 +1,65 @@
+logo:
+  image: ./images/toast-circle-color.png
+  altText: Toast logo
+  link: '/'
+navbar:
+  items:
+    - href: https://doc.toasttab.com/doc/cookbook/index.html
+      label: How-to guides 
+    - href: https://doc.toasttab.com/doc/devguide/index.html
+      label: Developer guide
+    - href: https://doc.toasttab.com/openapi/
+      label: API reference
+    - href: https://doc.toasttab.com/doc/platformguide/index.html
+      label: Platform guide
+    - href: https://doc.toasttab.com/doc/relnotes/index.html
+      label: Release notes
+# feedback:
+#   type: sentiment
+#   settings:
+#     comment:
+#       likeLabel: What was most helpful?
+#       dislikeLabel: What can we improve?
+
+apis:
+  authentication:
+    # root: './toast-authentication-api.yaml'
+    # url: 'https://doc.toasttab.com/toast-api-specifications/toast-authentication-api.yaml'
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-authentication-api.yaml'
+  analytics:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-reporting-api.yaml'
+  cash-management:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-cashmgmt-api.yaml'
+
+# extends:
+#   - recommended
+
+# rules:
+#   info-license: error
+#   no-ambiguous-paths: error
+#   no-http-verbs-in-paths:
+#     severity: error
+#     splitIntoWords: true
+#   rule/operationId-casing:
+#     subject:
+#       type: Operation
+#       property: operationId
+#     assertions:
+#       casing: camelCase
+#   rule/no-description-start-with-the-a-an:
+#     subject:
+#       type: any
+#       property: description
+#     assertions:
+#       notPattern: /^(The\s|A\s|An\s)/
+
+# rbac:
+#   content:
+#     '**'
+#       authenticated: read
+
+# redirects:
+#   '/concepts/categories/':
+#     to: 'author/concepts/categories/'
+#   '/concepts/navigation/':
+#     to: 'author/concepts/navigation/'
