@@ -23,6 +23,7 @@ navbar:
 
 openapi:
   schemaDefinitionsTagName: Data definitions
+
 apis:
   analytics:
     root: 'https://doc.toasttab.com/toast-api-specifications/toast-reporting-api.yaml'
