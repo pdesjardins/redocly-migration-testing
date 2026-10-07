@@ -76,6 +76,15 @@ apis:
   stock:
     root: 'https://doc.toasttab.com/toast-api-specifications/toast-stock-api.yaml'
     output: ./openapi/stock.yaml
+  giftcards:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-integrations-giftcard-api.yaml'
+    output: ./openapi/giftcards.yaml
+  loyalty:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-integrations-loyalty-api.yaml'
+    output: ./openapi/loyalty.yaml
+  tender:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-tender-api.yaml'
+    output: ./openapi/tender.yaml
 
 # extends:
 #   - recommended

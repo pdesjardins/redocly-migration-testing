@@ -1,0 +1,1745 @@
+swagger: '2.0'
+info:
+  version: 0.1.0
+  title: Toast Tender Integration API
+  description: |
+    This API specification describes the interface that the Toast POS 
+    system calls when it processes tender transactions.
+
+    Implement this REST API to allow the Toast POS system to process 
+    tender transactions, allowing payments and discounts to be applied
+    to a check.
+basePath: /yourapiname/v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /yourendpointname:
+    post:
+      summary: |
+        Provides information about a tender transaction to a tender provider.
+      description: |
+        Provides information about a tender transaction processed by 
+        the Toast POS system. The transaction information in the 
+        message body is intended to allow a tender provider to 
+        perform corresponding operations on the tender account, 
+        maintained by that provider. The response to this message
+        allows the Toast POS system to update the check, including posting
+        payments and discounts to the check.
+
+        You define the endpoint name for this implementation. The Toast 
+        POS system makes requests to the REST path that you supply 
+        during integration setup.
+
+        Each `POST` request to the endpoint includes a 
+        `Toast-Transaction-Type` header parameter value to indicate the 
+        type of tender transaction it represents. The supported 
+        transaction types are:
+
+        * Retrieve discounts that are available on a given check.
+        * Retrieve payments that are available on a given check.
+        * Redeem retrieved payments and/or discounts.
+        * Add a tip to a previously confirmed payment.
+        * Reverse a previous redemption or gratuity.
+        * Request configured search terms for the restaurant.
+        * Search for an account.
+
+        The <a 
+        href="#/definitions/TenderTransaction">`TenderTransaction`</a>
+        object in the message body includes a set of information that 
+        is specific for each transaction type.
+
+        The response time for a tender transaction request must be 
+        less than 500ms on average. A response time of greater than
+        5000ms will be considered a timeout.
+
+        All tender transactions must be considered idempotent. The 
+        implementation must handle multiple requests with the same 
+        `Toast-Transaction-GUID`, `Toast-Transaction-Type`, and 
+        `tenderIdentifier`.
+      produces:
+        - application/json
+      parameters:
+        - name: Toast-Transaction-GUID
+          description: |
+            A unique identifier of the tender transaction, defined 
+            by the Toast POS system. This value is
+            referenced if there is a future reverse transaction call.
+          in: header
+          type: string
+        - name: Toast-Restaurant-External-ID
+          description: |
+            The unique identifier of the restaurant, defined by the 
+            Toast POS system.
+          in: header
+          type: string
+        - name: Toast-Alternate-Payment-Type-GUID
+          description: |
+            The unique identifier of the Alternate Payment Type used to pay for this Tender transaction.
+          in: header
+          type: string
+        - name: Toast-Transaction-Type
+          description: |
+            The type of tender transaction that occurred. Values are:
+            <ul>
+              <li>TENDER_RETRIEVE_DISCOUNTS</li>
+              <li>TENDER_RETRIEVE_PAYMENTS</li>
+              <li>TENDER_REDEEM</li>
+              <li>TENDER_GRATUITY</li>
+              <li>TENDER_REVERSE</li>
+              <li>TENDER_SEARCH_CONFIG</li>
+              <li>TENDER_SEARCH</li>
+            </ul>
+
+            </ul>
+          in: header
+          type: string
+          enum:
+            - TENDER_SEARCH
+            - TENDER_SEARCH_CONFIG
+            - TENDER_RETRIEVE_DISCOUNTS
+            - TENDER_RETRIEVE_PAYMENTS
+            - TENDER_REDEEM
+            - TENDER_GRATUITY
+            - TENDER_REVERSE
+        - name: Authorization
+          description: |
+            An API key used to authenticate the request. This API key is provided by the tender partner and can be found in the request header. For more information, see [Authenticating outbound API requests](https://doc.toasttab.com/doc/devguide/apiAuthenticatingRequestsFromToastApiClients.html).
+          in: header
+          type: string
+        - name: tenderTransaction
+          in: body
+          description: |
+            A <a 
+            href="#/definitions/TenderTransaction">`TenderTransaction`</a> 
+            object containing information about the tender 
+            transaction that the Toast POS system is requesting.
+          schema:
+            $ref: '#/definitions/TenderTransaction'
+      responses:
+        '200':
+          description: |
+            OK. The `transactionStatus` value of the 
+            `TenderTransactionResponse` object is `ACCEPT`.
+          schema:
+            $ref: '#/definitions/TenderTransactionResponse'
+        '400':
+          description: |
+            Bad request. The `transactionStatus` value of the 
+            `TenderTransactionResponse` object is one of:
+
+            * `ERROR_INVALID_TOAST_TRANSACTION_TYPE`
+            * `ERROR_INVALID_INPUT_PROPERTIES`
+            * `ERROR_INVALID_TOKEN`
+            * `ERROR_INVALID_RESTAURANT`
+            * `ERROR_TRANSACTION_DOES_NOT_EXIST`
+            * `ERROR_TRANSACTION_CANNOT_BE_REVERSED`
+            * `ERROR_ACCOUNT_INVALID`
+            * `ERROR_ACCOUNT_NO_POST`
+            * `ERROR_CHECKED_OUT`
+            * `ERROR_FOLIO_IN_USE`
+            * `ERROR_INSUFFICIENT_FUNDS`
+            * `ERROR_UNABLE_TO_PROCESS`
+            * `ERROR_UNABLE_TO_PROCESS_REASON`
+            * `ERROR_UNMAPPED_ITEMIZER`
+            * `ERROR_UNMAPPED_SPECIFIC_ITEMIZER`
+          schema:
+            $ref: '#/definitions/TenderTransactionResponse'
+        '500':
+          description: Internal server error.
+definitions:
+  TenderTransaction:
+    type: object
+    description: |
+      Information about a tender transaction in the Toast POS 
+      system. Tender providers are expected to handle that 
+      transaction.
+
+      The set of information in this object depends on the tender 
+      transaction type. The transaction type is specified in the 
+      `Toast-Transaction-Type` header parameter for the request.
+
+      The `TenderTransaction` object includes the following values 
+      for specific transaction types:
+
+      * `TENDER_RETRIEVE_DISCOUNTS` - includes a `discountsTransactionInformation` value.
+      * `TENDER_RETRIEVE_PAYMENTS` - includes a `paymentsTransactionInformation` value.
+      * `TENDER_REDEEM` - includes a `redeemTransactionInformation` value.
+      * `TENDER_GRATUITY` - includes a `gratuityTransactionInformation` value.
+      * `TENDER_REVERSE` - includes a `reverseTransactionInformation` value.
+      * `TENDER_SEARCH_CONFIG` - no additional values.
+      * `TENDER_SEARCH` - includes an `searchTransactionInformation` value.
+    properties:
+      searchTransactionInformation:
+        $ref: '#/definitions/TransactionInformationSearch'
+      discountsTransactionInformation:
+        $ref: '#/definitions/TransactionInformationDiscounts'
+      paymentsTransactionInformation:
+        $ref: '#/definitions/TransactionInformationPayments'
+      redeemTransactionInformation:
+        $ref: '#/definitions/TransactionInformationRedeem'
+      gratuityTransactionInformation:
+        $ref: '#/definitions/TransactionInformationGratuity'
+      reverseTransactionInformation:
+        $ref: '#/definitions/TransactionInformationReverse'
+  TransactionInformationSearch:
+    type: object
+    description: |
+      A request to search for all tender accounts that match the given search terms.
+    properties:
+      swipeData:
+        description: |
+          Decrypted data from card swipe.
+        type: string
+      scanData:
+        description: |
+          Data from a barcode or QR code scan.
+        type: string
+      searchTerms:
+        description: |
+          A list of terms to search against. These terms are customizable based on 
+          the provider and customer. For example, many customers may want to search 
+          by name, but hotels may want to search by room number.
+        type: array
+        items:
+          $ref: '#/definitions/KeyValue'
+      orderGuid:
+        description: |
+          The GUID of the order associated with the search request.
+        type: string
+        format: uuid
+      checkGuid:
+        description: |
+          The GUID of the check associated with the search request.
+        type: string
+        format: uuid
+      revenueCenterGuid:
+        description: |
+          The GUID of the revenue center associated with the search request.
+        type: string
+        format: uuid
+  TransactionInformationDiscounts:
+    type: object
+    description: |
+      A request for the provider to return a list of
+      discounts (if any) that apply to the given check.
+      The Toast POS system will then send a `TENDER_RETRIEVE_PAYMENTS` request with the discounts
+      applied to the check.
+    properties:
+      tenderIdentifier:
+        description: |
+          The unique identifier of a tender guest. This is obtained by entering a name or an email address,
+          or anything else accepted by both the customer and the integration.
+        type: string
+      accountInfo:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request. Only available if search and pay is used.
+        $ref: '#/definitions/AccountInfo'
+      orderGuid:
+        description: |
+          The GUID of the order this check belongs to. Orders can have multiple
+          checks, but only one check will be relevant for the transaction. The
+          order GUID can be used to later retrieve information about the order
+          and check from the Toast Orders API.
+        type: string
+        format: uuid
+      check:
+        description: |
+          Information about the check used to calculate any discounts
+          and payments to apply to the check.
+        $ref: '#/definitions/Check'
+      totalDiscountable:
+        description: |
+          Total amount that can be discounted on the check.
+        type: number
+        format: double
+  TransactionInformationPayments:
+    type: object
+    description: |
+      A request for the provider to return a list of
+      payments that apply to the check.
+      The Toast POS system will then send a `TENDER_REDEEM` request with the discounts
+      and payments applied to the check.
+    properties:
+      tenderIdentifier:
+        description: |
+          The unique identifier of a tender guest. This is obtained by entering a name or an email address, or anything else accepted by both the customer and the integration.
+        type: string
+      accountInfo:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request. Only available if search and pay is used.
+        $ref: '#/definitions/AccountInfo'
+      amount:
+        description: |
+          The amount of the requested tender. Breakdown details can be found
+          in the check object. If not present, the requested amount is
+          the full amount owed on the check.
+        type: number
+        format: double
+      tipAmount:
+        description: |
+          The amount of the requested gratuity, in addition to the amount requested
+          for actual payment of the check.
+        type: number
+        format: double
+      orderGuid:
+        description: |
+          The GUID of the order this check belongs to. Orders can have multiple
+          checks, but only one check will be relevant for the transaction. The
+          order GUID can be used to later retrieve information about the order
+          and check from the Toast Orders API.
+        type: string
+        format: uuid
+      check:
+        description: |
+          Information about the check used to calculate any discounts
+          and payments to apply to the check.
+        $ref: '#/definitions/Check'
+      tenderDiscountsApplied:
+        description: |
+          The list of tender discounts retrieved by the previous `TENDER_RETRIEVE_DISCOUNTS`
+          call that were applied to the check.
+        type: array
+        items:
+          $ref: '#/definitions/TenderDiscount'
+      tenderCouponsApplied:
+        description: |
+          Reserved for future use.
+        type: array
+        items:
+          $ref: '#/definitions/TenderCoupon'
+  TransactionInformationRedeem:
+    type: object
+    description: |
+      A request for the provider to mark as consumed the discounts and payments
+      included in this message, that were previously retrieved with
+      `TENDER_RETRIEVE_DISCOUNTS` and `TENDER_RETRIEVE_PAYMENTS` calls.
+    properties:
+      tenderIdentifier:
+        description: |
+          The unique identifier of a tender guest. This is obtained by entering a name or an email address, or anything else accepted by both the customer and the integration.
+        type: string
+      accountInfo:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request. Only available if search and pay is used.
+        $ref: '#/definitions/AccountInfo'
+      orderGuid:
+        description: |
+          The GUID of the order this check belongs to. Orders can have multiple
+          checks, but only one check will be relevant for the transaction. The
+          order GUID can be used to later retrieve information about the order
+          and check from the Toast Orders API.
+        type: string
+        format: uuid
+      check:
+        description: |
+          Information about the check that should be used to calculate any discounts
+          and payments to apply to the check.
+        $ref: '#/definitions/Check'
+      tenderPaymentsApplied:
+        description: |
+          The list of tender payments retrieved by the previous `TENDER_RETRIEVE_PAYMENTS`
+          call that were applied to the check.
+        type: array
+        items:
+          $ref: '#/definitions/TenderPayment'
+      tenderDiscountsApplied:
+        description: |
+          The list of tender discounts retrieved by the previous `TENDER_RETRIEVE_DISCOUNTS`
+          call that were applied to the check.
+        type: array
+        items:
+          $ref: '#/definitions/TenderDiscount'
+      tenderCouponsApplied:
+        description: |
+          Reserved for future use.
+        type: array
+        items:
+          $ref: '#/definitions/TenderCoupon'
+      revenueCenter:
+        description: |
+          The revenue center that the order this check belongs to was placed in,
+          if the location is configured to use revenue centers.
+        $ref: '#/definitions/RevenueCenter'
+  TransactionInformationGratuity:
+    type: object
+    description: |
+      A request to add an additional gratuity to a existing tender transaction.
+    properties:
+      tenderIdentifier:
+        description: |
+          The unique identifier of a tender guest. This is obtained by entering a name or an email address,
+          or anything else accepted by both the customer and the integration.
+        type: string
+      accountInfo:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request. Only available if search and pay is used.
+        $ref: '#/definitions/AccountInfo'
+      transactionToUpdate:
+        description: |
+          The identifier of an earlier tender transaction. This
+          identifier is provided in the `Toast-Transaction-GUID` header
+          parameter. This is the transaction for which an additional
+          gratuity is being requested.
+        type: string
+        format: uuid
+      additionalGratuity:
+        description: |
+          The total gratuity amount for the tender payment. If multiple
+          gratuity requests are sent for the same transaction, the tender
+          provider should use the most recent value as the final gratuity.
+        type: number
+        format: double
+      paymentGuid:
+        description: |
+          The identifier of the Toast POS payment object that the additional gratuity
+          applies to.
+        type: string
+        format: uuid
+      tenderPayments:
+        description: |
+          The tender payments from the transaction identified by
+          `transactionToUpdate` that the additional gratuity applies to.
+        type: array
+        items:
+          $ref: '#/definitions/TenderPayment'
+      checkInfo:
+        description: |
+          Information about the associated check for this gratuity transaction
+        $ref: '#/definitions/CheckInfo'
+      orderGuid:
+        description: |
+          The identifier of the order this check belongs to. Orders can have multiple
+          checks, but only one check will be relevant for the transaction. The
+          order GUID can be used to later retrieve information about the order
+          and check from the Toast Orders API.
+        type: string
+        format: uuid
+      check:
+        description: |
+          Information about the check that the additional gratuity applies to.
+        $ref: '#/definitions/Check'
+      tenderCouponsApplied:
+        description: |
+          Reserved for future use.
+        type: array
+        items:
+          $ref: '#/definitions/TenderCoupon'
+  TransactionInformationReverse:
+    type: object
+    description: |
+      A request to reverse discounts and/or payments made as part of a previous transaction.
+    properties:
+      tenderIdentifier:
+        description: |
+          The unique identifier of a tender guest. This is obtained by entering a name or an email address,
+          or anything else accepted by both the customer and the integration.
+        type: string
+      accountInfo:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request. Only available if search and pay is used.
+        $ref: '#/definitions/AccountInfo'
+      transactionToUpdate:
+        description: |
+          The identifier of an earlier tender transaction. This 
+          identifier is provided in the `Toast-Transaction-GUID` header 
+          parameter. The discounts and/or payments to reverse must have been added as part of
+          this transaction. The only transactions that can be reversed are the `TENDER_REDEEM`
+          and `TENDER_GRATUITY` transactions.
+        type: string
+        format: uuid
+      discountsToRemove:
+        description: |
+          A list of reference IDs for discounts that are to be reversed. These discounts have
+          been removed from the check and must be added back to the users account, if applicable.
+        type: array
+        items:
+          type: string
+      paymentsToRemove:
+        description: |
+          A list of reference IDs for payments that are to be reversed. These payments have
+          been removed from the check and the funds used must be added back to the users account,
+          if applicable.
+        type: array
+        items:
+          type: string
+      tenderDiscountsToRemove:
+        description: |
+          Includes the information on the discounts to be refunded.
+        type: array
+        items:
+          $ref: '#/definitions/TenderDiscount'
+      tenderPaymentsToRemove:
+        description: |
+          Includes the information on the payments to be refunded.
+        type: array
+        items:
+          $ref: '#/definitions/TenderPayment'
+      tenderCouponsToRemove:
+        description: |
+          Reserved for future use.
+        type: array
+        items:
+          $ref: '#/definitions/TenderCoupon'
+      checkInfo:
+        description: |
+          Information about the check associated with a gratuity transaction.
+        $ref: '#/definitions/CheckInfo'
+      originalTransactionStatus:
+        description: |
+          The result of an earlier tender transaction that is being refunded with this request.
+        $ref: '#/definitions/TenderTransactionStatus'
+      orderGuid:
+        type: string
+        format: uuid
+        description: |
+          Unique Toast order identifier associated with the refunded transaction.
+  TenderTransactionResponse:
+    type: object
+    description: |
+      Information about a tender transaction from the tender 
+      provider. The Toast POS system uses this information to 
+      complete guests' tender transactions.
+
+      The set of information in this object depends on the tender 
+      transaction type. The transaction type is specified in the 
+      `Toast-Transaction-Type` header parameter for the request.
+
+      All `TenderTransactionResponse` objects must include a 
+      `transactionStatus` value.
+
+      The `TenderTransactionResponse` object includes the following values 
+      for specific transaction types:
+
+      * `TENDER_RETRIEVE_DISCOUNTS` - includes a `discountsResponse` value.
+      * `TENDER_RETRIEVE_PAYMENTS` - includes a `paymentsResponse` value.
+      * `TENDER_REDEEM` - optionally includes a `redeemResponse` value.
+      * `TENDER_GRATUITY` - includes a `gratuityResponse` value.
+      * `TENDER_REVERSE` - no additional fields.
+      * `TENDER_SEARCH_CONFIG` - includes a `searchConfigResponse` value.
+      * `TENDER_SEARCH` - includes an `searchResponse` value.
+    properties:
+      transactionStatus:
+        $ref: '#/definitions/TenderTransactionStatus'
+      searchConfigResponse:
+        $ref: '#/definitions/TransactionResponseSearchConfig'
+      searchResponse:
+        $ref: '#/definitions/TransactionResponseSearch'
+      discountsResponse:
+        $ref: '#/definitions/TransactionResponseDiscounts'
+      paymentsResponse:
+        $ref: '#/definitions/TransactionResponsePayments'
+      gratuityResponse:
+        $ref: '#/definitions/TransactionResponseGratuity'
+      redeemResponse:
+        $ref: '#/definitions/TransactionResponseRedeem'
+      errorDetails:
+        description: |
+          Additional details about an error displayed to the POS operator, 
+          supplied by the provider along with specific error statuses.
+        type: object
+        additionalProperties:
+          type: string
+  TenderTransactionStatus:
+    description: |
+      Indicates the result of a tender transaction, reported by the
+      tender service provider. This property must be present on all
+      responses. Possible values are:
+
+      <ul>
+        <li>`ACCEPT` - The tender service provider processed the transaction successfully.</li>
+        <li>`ERROR_INVALID_TOAST_TRANSACTION_TYPE` - The requested Toast-Transaction-Type is not valid.</li>
+        <li>`ERROR_INVALID_INPUT_PROPERTIES` - The specified JSON properties in the request body are not valid.</li>
+        <li>`ERROR_INVALID_TOKEN` - The token supplied in the `Authorization` header field is invalid.</li>
+        <li>`ERROR_INVALID_RESTAURANT` - The restaurant specified by the `Toast-Restaurant-External-ID` is invalid.</li>
+        <li>`ERROR_ACCOUNT_INVALID` - The tender identifier provided did not correspond to an account, or the account
+          is not valid at the current restaurant.</li>
+        <li>`ERROR_ACCOUNT_NO_POST` - The tender identifier provided corresponded to an account which has no card on file or
+          has been marked as "no post".
+        <li>`ERROR_FOLIO_IN_USE` - Some property management systems limit guest folio access to one source at a time. If the front desk agent is using the property management system to access a guest folio, it may be locked and therefore unavailable for room charge posting during that time.</li>
+        <li>`ERROR_INSUFFICIENT_FUNDS` - The payment or tip, specified in TENDER_RETRIEVE_PAYMENTS or TENDER_RETRIEVE_GRATUITY,
+          cannot be retrieved because the tender account does not have sufficient balance.</li>
+        <li>`ERROR_UNABLE_TO_PROCESS` - The transaction cannot be processed by the integration.</li>
+        <li>`ERROR_TRANSACTION_DOES_NOT_EXIST` - The transaction that is being requested to be reversed or updated
+          does not exist. Only occurs on a `TENDER_REVERSE` or `TENDER_GRATUITY` response.</li>
+        <li>`ERROR_TRANSACTION_CANNOT_BE_REVERSED` - The specified transaction cannot be reversed. Only `TENDER_REDEEM`
+          and `TENDER_GRATUITY` transactions can be reversed.</li>
+        <li>`ERROR_UNABLE_TO_PROCESS_REASON` - The transaction cannot be processed by the integration, and the integration is
+          supplying the reason. Include the reason text in the `errorMessage` key of the `errorDetails` value so that
+          the Toast POS system can display it to the restaurant employee.</li>
+        <li>`ERROR_CHECKED_OUT` - The account is no longer available for posting because the guest has checked out.</li>
+        <li>`ERROR_UNMAPPED_SPECIFIC_ITEMIZER` - The check contains a menu item that is not fully configured for the
+          integration. Include the name of the data extension type in the `dataExtensionType` key of the
+          `errorDetails` value.</li>
+        <li>`ERROR_NETWORK` - Reserved for the Toast POS system. The Toast POS system reports this status when it
+          cannot reach the tender provider. Tender providers should not return this value.</li>
+        <li>`ERROR` - Reserved for the Toast POS system. The Toast POS system reports this status for an unknown error,
+          including a response body that does not conform to this specification. Tender providers should not return
+          this value.</li>
+      </ul>
+    type: string
+    enum:
+      - ACCEPT
+      - ERROR
+      - ERROR_INVALID_TOAST_TRANSACTION_TYPE
+      - ERROR_INVALID_INPUT_PROPERTIES
+      - ERROR_INVALID_TOKEN
+      - ERROR_INVALID_RESTAURANT
+      - ERROR_TRANSACTION_DOES_NOT_EXIST
+      - ERROR_TRANSACTION_CANNOT_BE_REVERSED
+      - ERROR_ACCOUNT_INVALID
+      - ERROR_ACCOUNT_NO_POST
+      - ERROR_CHECKED_OUT
+      - ERROR_FOLIO_IN_USE
+      - ERROR_INSUFFICIENT_FUNDS
+      - ERROR_NETWORK
+      - ERROR_UNABLE_TO_PROCESS
+      - ERROR_UNABLE_TO_PROCESS_REASON
+      - ERROR_UNMAPPED_SPECIFIC_ITEMIZER
+  TransactionResponseSearchConfig:
+    type: object
+    description: |
+      A list of search terms supported by the tender provider. This will populate
+      the list of search terms displayed by the Toast POS system when a search is requested.
+    properties:
+      searchTermNames:
+        description: |
+          The search terms supported by the tender provider. The `key` corresponds to the name of the search field. The
+          value will control what type of keybord the user sees when they click on the search field. The value field
+          must be one of the following; "NUMBER", "PHONE_NUMBER", "TEXT", or "EMAIL". The `key` value
+          will be represented in any subsequent `TENDER_SEARCH` requests. This list is limited to four values. any
+          values after the first four will be ignored.
+        type: array
+        items:
+          $ref: '#/definitions/KeyValue'
+  TransactionResponseSearch:
+    type: object
+    description: |
+      A list of accounts matching the search terms submitted as part of a search request.
+    properties:
+      searchResults:
+        description: |
+          Accounts matching the search terms submitted as part of a `TENDER_SEARCH`
+          request.
+        type: array
+        items:
+          $ref: '#/definitions/AccountInfo'
+      maxCouponsApplicable:
+        description: |
+          Reserved for future use.
+        type: integer
+  TransactionResponseDiscounts:
+    type: object
+    description: |
+      A list of discounts that apply to the given check with the given
+      account identifier.
+    properties:
+      account:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request.
+        $ref: '#/definitions/AccountInfo'
+      tenderDiscounts:
+        description: |
+          Includes the information on the discounts to be applied to the current
+          check.
+        type: array
+        items:
+          $ref: '#/definitions/TenderDiscount'
+  TransactionResponsePayments:
+    type: object
+    description: |
+      A list of discounts that apply to the given check with the given
+      account identifier.
+    properties:
+      account:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request.
+        $ref: '#/definitions/AccountInfo'
+      tenderPayments:
+        description: |
+          A list of the tender payments to be applied to the check.
+        type: array
+        items:
+          $ref: '#/definitions/TenderPayment'
+  TransactionResponseGratuity:
+    type: object
+    description: |
+      Response to a request to update the gratuity amount on an already tendered
+      payment.
+    properties:
+      account:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request.
+        $ref: '#/definitions/AccountInfo'
+      tenderPayments:
+        description: |
+          The list of payments that were updated or added to cover the requested gratuity.
+        type: array
+        items:
+          $ref: '#/definitions/TenderPayment'
+  TransactionResponseRedeem:
+    type: object
+    description: |
+      Response to a request to redeem previously retrieved discounts and payments.
+      This value is optional. Include it to report the account that the discounts
+      and payments were redeemed against, for example when the tender provider
+      resolved the request to a different account than the one in the request.
+    properties:
+      account:
+        description: |
+          Information about an account associated with the tenderIdentifier sent
+          as part of the request.
+        $ref: '#/definitions/AccountInfo'
+  AccountInfo:
+    type: object
+    description: Information related to a given tender user.
+    properties:
+      tenderIdentifier:
+        description: A unique identifier for this account.
+        type: string
+      properties:
+        description: |
+          Properties associated with this account that are used to identify
+          it. Examples include the account owners name, status, email,
+          phone number, or any other data that the provider wants to make
+          available to the server via the Toast POS system.
+          This data is also displayed in
+          response to a search request and used to identify the
+          desired account from those matching the search terms.
+        type: array
+        items:
+          $ref: '#/definitions/KeyValue'
+      additionalProperties:
+        description: |
+          Supplemental properties associated with this account. These properties
+          are not displayed in the list of search results on POS but returned to
+          the tender provider on subsequent transactions for the account.
+        type: array
+        items:
+          $ref: '#/definitions/KeyValue'
+      expansionSearchCriteria:
+        description: |
+          Search terms that the Toast POS system submits in a follow-up
+          `TENDER_SEARCH` request to expand this search result into the accounts
+          it represents. Use this when a result stands for a group of accounts,
+          for example a reservation that covers several guest folios.
+        type: array
+        items:
+          $ref: '#/definitions/KeyValue'
+      tenderCoupons:
+        description: |
+          Reserved for future use.
+        type: array
+        items:
+          $ref: '#/definitions/TenderCoupon'
+  TenderPayment:
+    type: object
+    description: |
+      Payment returned by the tender provider to be applied to the check.
+    properties:
+      name:
+        description: |
+          Name of this payment. This name is displayed on the check.
+          Required.
+        type: string
+      identifier:
+        description: |
+          A unique identifier for this payment, provided by the tender provider. 
+          Note that multiple payments of the same type must still have unique identifiers.
+          Required.
+        type: string
+      type:
+        type: string
+        description: The payment method.
+        enum:
+          - CREDIT
+          - STORED_VALUE
+          - REWARD
+          - OTHER
+          - UNDETERMINED
+      amount:
+        type: number
+        format: double
+        description: The amount of this payment, excluding tips. Required.
+      tipAmount:
+        type: number
+        format: double
+        description: The amount tipped on this payment.
+      paymentGuid:
+        description: |
+          If this payment was applied to the check by the Toast POS system, this will indicate the 
+          GUID of the payment object that corresponds to this tender payment.
+          Request only.
+        type: string
+        format: uuid
+  TenderDiscount:
+    type: object
+    description: |
+      A discount to be applied to a check. In response to a `TENDER_RETRIEVE_DISCOUNTS`
+      request, the Toast POS system attempts to apply the discount to the check.
+      In the `TENDER_RETRIEVE_PAYMENTS` and `TENDER_REDEEM`
+      request, the successfully applied discounts are included.
+    properties:
+      name:
+        description: |
+          Name of this discount. This name is displayed on the check and in the restaurants reports.
+          Required.
+        type: string
+      identifier:
+        description: |
+          A unique identifier for this discount, provided by the tender provider. 
+          Note that multiple discounts of the same type must still have unique identifiers.
+          Required.
+        type: string
+      amount:
+        description: |
+          Amount that will be discounted from the item or check. This cannot be more than
+          the pre-tax total of the item or check. Required.
+        type: number
+        format: double
+      selectionGuid:
+        description: |
+          GUID of the selection this discount applies to. Required only if this
+          is an item-level discount.
+        type: string
+        format: uuid
+      appliedDiscountGuid:
+        description: |
+          If this discount was applied to the check by the Toast POS system, this will indicate the 
+          GUID of the appliedDiscount object that corresponds to this tender discount.
+          Request only.
+        type: string
+        format: uuid
+  TenderCoupon:
+    type: object
+    description: |
+      Reserved for future use.
+    properties:
+      name:
+        description: |
+          Reserved for future use.
+        type: string
+      identifier:
+        description: |
+          Reserved for future use.
+        type: string
+      status:
+        description: |
+          Reserved for future use.
+        type: string
+        enum:
+          - AVAILABLE
+          - CONSUMED
+      value:
+        description: |
+          Reserved for future use.
+        type: number
+        format: double
+      consumedTime:
+        description: |
+          Reserved for future use.
+        type: string
+        format: date-time
+      info:
+        description: |
+          Reserved for future use.
+        type: string
+  KeyValue:
+    type: object
+    description: |
+      An abstract key-value pair, used anytime the Toast POS system needs to submit or accept one
+      or more configurable values.
+    properties:
+      key:
+        description: The key of the key-value pair.
+        type: string
+      value:
+        description: The value of the key-value pair.
+        type: string
+      tenderPropertyType:
+        description: |
+          An optional type describing the purpose of a key-value pair. If provided, allows
+          Toast to use a key-value pair in a specialized way, such as displaying the room ID on receipts
+        type: string
+        enum:
+          - FOLIO
+          - GUEST_NAME
+          - GUEST_SURNAME
+          - RESULT_NUMBER
+          - REWARDS_LEVEL
+          - ROOM_ID
+          - OTHER
+      maxLength:
+        description: |
+          An optional maximum length of input value. Used for Tender search to limit the length of the input.
+        type: integer
+  RevenueCenter:
+    type: object
+    description: |
+      A data object with fields that allow reference to a Toast entity by Toast GUID
+    properties:
+      guid:
+        description: The GUID maintained by the Toast platform
+        type: string
+        format: uuid
+      name:
+        description: The name of the revenue center
+        type: string
+  Check:
+    type: object
+    description: Represents a single check within an order.
+    allOf:
+      - $ref: '#/definitions/ExternalReference'
+      - type: object
+        required:
+          - selections
+        properties:
+          openedDate:
+            description: |
+              The date on which this check was opened. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+            type: string
+            format: date-time
+          closedDate:
+            type: string
+            format: date-time
+            description: |
+              The most recent date on which this check's payment status 
+              was set to CLOSED. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          modifiedDate:
+            type: string
+            format: date-time
+            description: |
+              The most recent date on which this check was modified. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          deletedDate:
+            type: string
+            format: date-time
+            description: |
+              The date on which this check was deleted. `deletedDate` 
+              is only applicable when deleted is true (by default the 
+              value will be set to 1970-01-01T00:00:00.000+0000). <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          deleted:
+            type: boolean
+            description: True if this check has been deleted.
+          selections:
+            type: array
+            items:
+              $ref: '#/definitions/Selection'
+          customer:
+            $ref: '#/definitions/Customer'
+          appliedLoyaltyInfo:
+            description: Information about the customer loyalty program account associated with the check. Used to accrue loyalty program benefits and to redeem loyalty program discounts.
+            $ref: '#/definitions/AppliedLoyaltyInfo'
+          taxExempt:
+            type: boolean
+            default: false
+            description: True if this check is tax exempt. Tax exempt number is not yet supported.
+          displayNumber:
+            type: string
+            description: Generally starts at one each day and counts up. Not guaranteed to be unique.
+          appliedServiceCharges:
+            type: array
+            description: Any restaurant-configured service charges that applied to this check.
+            items:
+              $ref: '#/definitions/AppliedServiceCharge'
+          amount:
+            type: number
+            format: double
+            description: The dollar amount due on this check in USD, after discounts but before tax.
+          taxAmount:
+            type: number
+            format: double
+            description: The computed tax amount in USD. Includes service charge and item level taxes.
+          totalAmount:
+            type: number
+            format: double
+            description: The total amount due on this check in USD, including discounts and taxes.
+          payments:
+            type: array
+            description: Payments made on this check
+            minItems: 0
+            items:
+              $ref: '#/definitions/Payment'
+          tabName:
+            type: string
+            description: The name of the tab on this check. This will show up on the KDS (Kitchen Display System) for pending orders. The length of `tabName` can be up to 255 characters.
+          paymentStatus:
+            type: string
+            description: The payment status of this check. OPEN means there is an outstanding balance. PAID means a credit card payment has been applied but the tip has not been adjusted. CLOSED means there is no remaining amount due on this check. Toast does not prevent a CLOSED check from transitioning back to OPEN or PAID.
+            enum:
+              - OPEN
+              - PAID
+              - CLOSED
+          appliedDiscounts:
+            type: array
+            description: The discounts applied to this check.
+            minItems: 0
+            items:
+              $ref: '#/definitions/AppliedDiscount'
+          voided:
+            type: boolean
+            description: True if this check has been voided.
+          voidDate:
+            type: string
+            format: date-time
+            description: |
+              The date on which this check was voided. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          voidBusinessDate:
+            type: integer
+            description: |
+              The business date (yyyyMMdd) on which this check was 
+              voided.
+          paidDate:
+            type: string
+            format: date-time
+            description: |
+              The most recent date on which this check received 
+              payment. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          createdDevice:
+            description: The Toast POS device that created the check. This value is null if the check was not created using a Toast POS device.
+            type: object
+            $ref: '#/definitions/Device'
+          lastModifiedDevice:
+            description: The Toast POS device that modified the check most recently. This value is null if the check has not been modified using a Toast POS device. If the check is modified but the modification is not made using a Toast POS device, this value does not change.
+            type: object
+            $ref: '#/definitions/Device'
+  CheckInfo:
+    type: object
+    description: Information about a check associated with a transaction
+    required:
+      - guid
+      - displayNumber
+    properties:
+      guid:
+        description: The GUID maintained by the Toast platform
+        type: string
+        format: uuid
+      displayNumber:
+        description: The display number of the check
+        type: string
+  AppliedLoyaltyInfo:
+    type: object
+    description: Information about the customer loyalty program account associated with a check.
+    required:
+      - loyaltyIdentifier
+      - vendor
+    allOf:
+      - $ref: '#/definitions/ToastReference'
+      - type: object
+        properties:
+          loyaltyIdentifier:
+            type: string
+            description: An identifier for the loyalty program account.
+          vendor:
+            type: string
+            description: The specific loyalty program service provider that supports the loyalty account. For all interactions with the Loyalty Integration API, this value will be INTEGRATION.
+            enum:
+              - INTEGRATION
+          accrualFamilyGuid:
+            type: string
+            description: An internal Toast POS identifier for loyalty program transactions.
+          accrualText:
+            type: string
+            description: A description of the loyalty program transaction that will be printed on the customer's receipt. For example, "Earned 27 points." The maximum length of the description string is 255 characters.
+  Selection:
+    type: object
+    description: |
+      "A `Selection` object can represent either a primary item (i.e. `Check.selections`) or a modifier (`Selection.modifiers`) selection. Quantity defaults to 1.
+      <br><br>
+      Specify a modifier selection by adding it to the `modifiers` list of another selection. For each modifier selection, its `optionGroup` field must be set correctly, because a `MenuItem` can be included in multiple `MenuOptionGroups`, potentially with different prices or sizing.
+    allOf:
+      - $ref: '#/definitions/ExternalReference'
+      - type: object
+        required:
+          - item
+          - quantity
+        properties:
+          item:
+            type: object
+            description: A reference to the selected `MenuItem`.
+            $ref: '#/definitions/ExternalReference'
+          itemGroup:
+            type: object
+            description: A reference to the `MenuGroup` from which the item was selected.
+            $ref: '#/definitions/ExternalReference'
+          optionGroup:
+            type: object
+            description: A reference to the modifier group from which the menu item was selected. Only applies if this is a modifier selection.
+            $ref: '#/definitions/ExternalReference'
+          preModifier:
+            type: object
+            description: A reference to the selected pre-modifier.
+            $ref: '#/definitions/ExternalReference'
+          quantity:
+            type: number
+            format: double
+            description: Quantity ordered. A decimal number for items sold by weight; a counting number for discrete items.
+          unitOfMeasure:
+            type: string
+            description: The unit of measure required for weighing the item. Default is NONE, which means the item is not meant to be weighed.
+            enum:
+              - NONE
+              - LB
+              - OZ
+              - KG
+              - G
+          selectionType:
+            type: string
+            description: Specifies whether this selection is a special request or other off-menu sale. If left null or NONE, describes a normal modifier or item selection.
+            enum:
+              - NONE
+              - OPEN_ITEM
+              - SPECIAL_REQUEST
+              - PORTION
+          salesCategory:
+            type: object
+            description: A reference to the `salesCategory` of the item.
+            $ref: '#/definitions/ExternalReference'
+          appliedDiscounts:
+            type: array
+            description: The itemized discounts applied to this item.
+            minItems: 0
+            items:
+              $ref: '#/definitions/AppliedDiscount'
+          deferred:
+            type: boolean
+            description: Whether this selection is a deferred revenue transaction, e.g. gift card sales.
+          preDiscountPrice:
+            type: number
+            description: Gross sale price for this selection. Excludes tax.
+            format: double
+          price:
+            type: number
+            format: double
+            description: Net price for this selection. The final price of the item after considering discounts (including discounts at the check level), quantity adjustments, and modifier prices at the time the item was selected for purchase.
+          tax:
+            type: number
+            format: double
+            description: The total tax amount for this selection.
+          voided:
+            type: boolean
+            description: True if this selection has been voided.
+          voidDate:
+            type: string
+            format: date-time
+            description: |
+              The date on which this selection was voided. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          voidBusinessDate:
+            type: integer
+            description: |
+              The business date (yyyyMMdd) on which this selection was 
+              voided.
+          voidReason:
+            type: object
+            description: If voided is true, a reference to the `voidReason`.
+            $ref: '#/definitions/ExternalReference'
+          displayName:
+            type: string
+            description: The display name of the selection. This field can be used to set a special request value, otherwise it will be generated from the `item` property of this `Selection`.
+          createdDate:
+            type: string
+            format: date-time
+            description: |
+              The date on which this selection was created. Defaults to 
+              current time if not specified. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          modifiedDate:
+            type: string
+            format: date-time
+            description: |
+              The date on which this selection was last modified. 
+              Defaults to current time if not specified. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+          modifiers:
+            type: array
+            description: A list of modifiers applying to this selection.
+            items:
+              $ref: '#/definitions/Selection'
+          fulfillmentStatus:
+            type: string
+            default: NEW
+            description: |
+              Indicates the stage of the preparation workflow that the 
+              menu item selection is in. The `fulfillmentStatus` of a 
+              menu item selection changes as restaurant employees move 
+              the item through the functions of the Toast POS system, for 
+              example order entry and the kitchen display system (KDS).
+              Response only. 
+              <ul>
+                <li>`NEW` - the menu item selection has been added to a 
+                  check but has not been sent to the KDS for 
+                  preparation.</li>
+                <li>`HOLD` - a restaurant employee has paused the menu 
+                  item selection so that it does not appear in the 
+                  KDS for preparation.</li>
+                <li>`SENT` - the menu item selection has been fired and 
+                  appears in the KDS for preparation.</li>
+                <li>`READY` - preparation is complete, the menu item 
+                  selection has been fulfilled and no longer appears in 
+                  the KDS. If your restaurant does not use the Toast POS 
+                  KDS, items in an order will not reach the `READY` 
+                  status.</li>
+              </ul>
+            enum:
+              - NEW
+              - HOLD
+              - SENT
+              - READY
+          taxInclusion:
+            type: string
+            description: |
+              Indicates whether the menu item price includes one or more tax
+              amounts. If the menu item is a modifier for another menu item
+              selection, it always inherits the tax inclusion behavior of the menu
+              item it applies to. Values are:
+              * `INCLUDED` - the menu item price includes one or more tax amounts.
+              * `NOT_INCLUDED` - the menu item price does not include any tax
+                amounts.
+              * `INHERITED` - the menu item is a modifier for another menu item
+                selection in the check. The `taxInclusion` value of the parent menu
+                item selection applies to the modifier. If a menu item selection
+                *that is not a modifier* inherits tax inclusion behavior from a
+                menu or menu group, the `taxInclusion` value will be either
+                `INCLUDED` or `NOT_INCLUDED`.
+            enum:
+              - INCLUDED
+              - NOT_INCLUDED
+              - INHERITED
+          appliedTaxes:
+            type: array
+            description: An array of `AppliedTaxRate` objects that contain information about tax payments made for the selection.
+            items:
+              $ref: '#/definitions/AppliedTaxRate'
+  Payment:
+    type: object
+    description: Defines a payment.
+    allOf:
+      - $ref: '#/definitions/ExternalReference'
+      - type: object
+        required:
+          - type
+          - amount
+          - tipAmount
+        properties:
+          paidDate:
+            description: |
+              The date on which the payment was made. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+            type: string
+            format: date-time
+          paidBusinessDate:
+            description: |
+              The business date (yyyyMMdd) on which this payment was 
+              first applied.
+            type: integer
+          type:
+            type: string
+            description: The payment method.
+            enum:
+              - CASH
+              - CREDIT
+              - GIFTCARD
+              - HOUSE_ACCOUNT
+              - REWARDCARD
+              - LEVELUP
+              - TENDER
+              - OTHER
+              - UNDETERMINED
+          cardEntryMode:
+            type: string
+            description: Indicates how credit card data was obtained.
+            enum:
+              - SWIPED
+              - KEYED
+              - ONLINE
+              - EMV_CHIP_SIGN
+              - TOKENIZED
+              - PRE_AUTHED
+              - SAVED_CARD
+              - FUTURE_ORDER
+          amount:
+            type: number
+            format: double
+            description: The amount of this payment, excluding tips.
+          tipAmount:
+            type: number
+            format: double
+            description: The amount tipped on this payment.
+          amountTendered:
+            type: number
+            format: double
+            description: The amount tendered for this payment.
+          cardType:
+            type: string
+            description: The type of card used.
+            enum:
+              - VISA
+              - MASTERCARD
+              - AMEX
+              - DISCOVER
+              - JCB
+              - DINERS
+              - CIT
+              - MAESTRO
+              - LASER
+              - SOLO
+              - UNKNOWN
+          last4Digits:
+            type: string
+            description: The last 4 digits of the card used.
+          originalProcessingFee:
+            type: number
+            format: double
+            description: The original processing fee for this payment. The original processing fee value is populated after the payment has been captured.
+          cashDrawer:
+            type: object
+            description: A reference to the `cashDrawer` used to receive this payment.
+            $ref: '#/definitions/ExternalReference'
+          refundStatus:
+            type: string
+            enum:
+              - NONE
+              - PARTIAL
+              - FULL
+          refund:
+            type: object
+            $ref: '#/definitions/Refund'
+          paymentStatus:
+            type: string
+            description: The status of this payment when the type is CREDIT.
+            enum:
+              - OPEN
+              - PROCESSING
+              - AUTHORIZED_AT_RISK
+              - AUTHORIZED
+              - ERROR
+              - DENIED
+              - VOIDED_AT_RISK
+              - CANCELLED
+              - CAPTURE_IN_PROGRESS
+              - CAPTURED
+              - VOIDED
+          voidInfo:
+            type: object
+            description: If the payment was voided, this will contain information on who did it and when.
+            $ref: '#/definitions/VoidInformation'
+          houseAccount:
+            type: object
+            description: A reference to the `houseAccount` associated with this payment, if any.
+            $ref: '#/definitions/ExternalReference'
+          otherPayment:
+            description: Required when the payment type is `OTHER`. A reference to an alternative payment method configured by the restaurant.
+            $ref: '#/definitions/ExternalReference'
+          createdDevice:
+            description: The Toast POS device that created the payment. This value is null if the payment was not created using a Toast POS device.
+            type: object
+            $ref: '#/definitions/Device'
+          lastModifiedDevice:
+            description: The Toast POS device that modified the payment most recently. This value is null if the payment has not been modified using a Toast POS device.  If the payment is modified but the modificiation is not made using a Toast POS device, this value does not change.
+            type: object
+            $ref: '#/definitions/Device'
+          mcaRepaymentAmount:
+            description: |
+              The total currency amount withheld as repayment for a merchant
+              cash advance (MCA). The MCA repayment amount is set at the time
+              the payment is captured, and then updated when settlement occurs.
+            type: number
+            format: double
+  Customer:
+    type: object
+    allOf:
+      - $ref: '#/definitions/ToastReference'
+      - type: object
+        required:
+          - firstName
+          - lastName
+          - email
+          - phone
+        properties:
+          firstName:
+            type: string
+            description: First name of the guest who placed the order.
+          lastName:
+            type: string
+            description: Last name of the guest who placed the order.
+          phone:
+            type: string
+            description: The phone number corresponding to the guest who placed the order.
+          email:
+            type: string
+            description: The email address corresponding to the guest who placed the order. The email address is the key that identifies a unique restaurant guest, and all distinct guests should have distinct email addresses.
+  DeliveryInfo:
+    type: object
+    description: Required if the dining option behavior is DELIVERY
+    required:
+      - address1
+      - city
+      - state
+      - zipCode
+    properties:
+      address1:
+        type: string
+        description: |
+          The first line of the street address of the delivery destination.
+      address2:
+        type: string
+        description: |
+          The second line of the street address of the delivery destination.
+      city:
+        type: string
+        description: |
+          The name of the city or town of the delivery destination.
+      state:
+        type: string
+        format: ISO 3166-2
+        description: |
+          The postal abbreviation of the state or province of the 
+          delivery destination. The abbreviation must be in ISO 3166-2 
+          format (two capital letters).
+      zipCode:
+        type: string
+        description: |
+          The postal or zip code of the delivery destination.
+      latitude:
+        type: number
+        format: double
+        description: |
+          The north/south geographic coordinate of the delivery 
+          destination, in decimal format.
+      longitude:
+        type: number
+        format: double
+        description: |
+          The east/west geographic coordinate of the delivery 
+          destination, in decimal format.
+      notes:
+        description: |
+          Additional instructions or information about the delivery.
+        type: string
+      deliveredDate:
+        type: string
+        format: date-time
+        description: |
+          The date and time that the delivery employee indicated that 
+          the order was delivered in the Toast POS system. Response only. This 
+          value is only set when the dining option for the order is 
+          `DELIVERY`. For other dining options, the value is `null`. <a 
+          href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+          ISO 8601 date and time format for all Toast APIs.</a>
+      dispatchedDate:
+        type: string
+        format: date-time
+        description: |
+          The date and time that the restaurant indicated that the 
+          order was available for delivery and assigned to a delivery 
+          employee in the Toast POS system. This value is only set when the 
+          dining option for the order is `DELIVERY`. For other dining 
+          options, the value is `null`. <a 
+          href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+          ISO 8601 date and time format for all Toast APIs.</a>
+      deliveryEmployee:
+        description: |
+          The Toast GUID or external identifier of the delivery 
+          employee.
+        type: object
+        $ref: '#/definitions/ExternalReference'
+  AppliedServiceCharge:
+    type: object
+    description: A percentage/open/fixed service charge added to a check which can represent in general an upcharge like a gratuity or delivery fee. Whether the upcharge is taxable is defined in the restaurant-configured `serviceCharge`. The fields on the `AppliedServiceCharge` are computed based on the referenced `ServiceCharge` configuration.
+    allOf:
+      - $ref: '#/definitions/ExternalReference'
+      - type: object
+        required:
+          - serviceCharge
+        properties:
+          chargeAmount:
+            type: number
+            format: double
+            description: The final applied amount excluding tax. This is required if amountType is OPEN.
+          serviceCharge:
+            description: A reference to the restaurant-configured service charge. If a service charge is taxable, the tax amount will be applied to the check.
+            type: object
+            $ref: '#/definitions/ExternalReference'
+          chargeType:
+            description: Derived from `serviceCharge`. An OPEN service charge can either be a dollar amount or a percentage.
+            type: string
+            enum:
+              - FIXED
+              - PERCENT
+              - OPEN
+          name:
+            description: Derived from `serviceCharge` - the configured human readable label for the service charge.
+            type: string
+          delivery:
+            description: Derived from `serviceCharge` - whether this service charge is a delivery charge.
+            type: boolean
+          gratuity:
+            description: Derived from `serviceCharge` - whether this service charge is a gratuity. Can be used to derive required tip amount on the check.
+            type: boolean
+          taxable:
+            description: Derived from `serviceCharge` - whether this service charge is taxable.
+            type: boolean
+          appliedTaxes:
+            type: array
+            description: Derived from `serviceCharge` - the taxes applied to the service
+            items:
+              $ref: '#/definitions/AppliedTaxRate'
+  AppliedTaxRate:
+    type: object
+    description: A tax rate applied to an `Item` or `ServiceCharge`.
+    required:
+      - taxRate
+    allOf:
+      - $ref: '#/definitions/ToastReference'
+      - type: object
+        properties:
+          taxRate:
+            type: object
+            $ref: '#/definitions/ToastReference'
+          name:
+            type: string
+            description: The name of the tax rate.
+          rate:
+            type: number
+            format: double
+            description: The tax rate, which can be a fixed amount, a percentage, or null.
+          taxAmount:
+            type: number
+            format: double
+            description: The tax amount that was actually applied.
+          type:
+            type: string
+            description: The type of the tax rate. Default is percent if no tax rate config
+            enum:
+              - PERCENT
+              - FIXED
+              - NONE
+              - TABLE
+  AppliedDiscountTrigger:
+    type: object
+    description: The `Selection` which triggered the application of this discount.
+    properties:
+      selection:
+        $ref: '#/definitions/ExternalReference'
+      quantity:
+        type: number
+        format: double
+        description: The amount of the selection used to trigger the applied discount.
+  AppliedDiscount:
+    type: object
+    description: |
+      A discount applied to a check or item. The Toast POS system calculates
+      service charges before applying discounts. The system calculates the tax
+      after applying discounts. In a `POST` request, the type of the discount
+      must be fixed amount or fixed percentage, and the discount must be applied
+      to a check. For more information, see [Applying discounts to an entire
+      check](https://doc.toasttab.com/doc/devguide/apiDiscountingOrders.html#apiApplyingDiscountsToACheck).
+    allOf:
+      - $ref: '#/definitions/ToastReference'
+      - type: object
+        properties:
+          name:
+            type: string
+            description: The name of the applied discount.
+          discountAmount:
+            type: number
+            format: double
+            description: The discount amount in USD. This amount is subtracted from the check or item.
+          nonTaxDiscountAmount:
+            type: number
+            format: double
+            description: |
+              The amount that a discount reduces a menu item price,
+              excluding any discount amount applied to taxes. In most
+              cases, a discount only applies to the menu item price and
+              the `nonTaxDiscountAmount` is the same as the `discountAmount`. 
+              If you apply a discount to a menu item that includes tax in 
+              its price, the `nonTaxDiscountAmount` is less than the full 
+              discount amount.
+          discount:
+            type: object
+            description: A GUID reference to the discount configured for the restaurant.
+            $ref: '#/definitions/ToastReference'
+          triggers:
+            type: array
+            description: Optional items which triggered this discount.
+            items:
+              $ref: '#/definitions/AppliedDiscountTrigger'
+          approver:
+            type: object
+            description: The user who approved the discount.
+            $ref: '#/definitions/ExternalReference'
+          processingState:
+            type: string
+            description: |
+              Applies to loyalty program discounts only. Loyalty
+              program reward discounts are validated and then applied,
+              or redeemed, by the third-party loyalty program service
+              provider depending on the state of the Toast POS order.
+              This value indicates the state of the discount in that
+              validation and application process. Response only. The
+              `processingState` may be one of the following enumerated
+              values.
+              <ul>
+                <li><code>PENDING_APPLIED</code> - The loyalty program
+                service provider has confirmed that the reward discount
+                is valid for the order and customer. The reward has not
+                been redeemed, or applied to the customer's loyalty
+                account.</li>
+                <li><code>APPLIED</code> - The reward discount has been
+                redeemed. The reward is no longer available from the
+                customer's loyalty program account.</li>
+                <li><code>PENDING_VOID</code> - The reward discount has been
+                removed from the Toast POS order. The reward is not
+                available from the customer's loyalty program account
+                until the loyalty program service provider processes
+                the void operation.</li>
+                <li><code>VOID</code> - The reward discount has been removed
+                from the Toast POS order and the reward is available from
+                the customer's loyalty program account again.</li>
+              </ul>
+            enum:
+              - PENDING_APPLIED
+              - APPLIED
+              - PENDING_VOID
+              - VOID
+          loyaltyDetails:
+            type: object
+            description: Information about the customer loyalty program discount being applied to the check.
+            $ref: '#/definitions/LoyaltyDetails'
+          comboItems:
+            type: array
+            description: A List of Menu Item Selections that this discount is applied to (empty for NonCombo Discounts).
+            items:
+              $ref: '#/definitions/ExternalReference'
+          appliedPromoCode:
+            type: string
+            description: The promo code that was applied for this discount.
+  LoyaltyDetails:
+    type: object
+    description: Information about the loyalty program discount applied to a check. The loyalty program account is identified in the <a href="#/definitions/AppliedLoyaltyInfo">AppliedLoyaltyInfo</a> value for the check.
+    required:
+      - vendor
+      - referenceId
+    properties:
+      vendor:
+        type: string
+        description: The specific loyalty program service provider that supports the loyalty account.
+        enum:
+          - TOAST
+          - PUNCHH
+          - PUNCHH2
+          - PAYTRONIX
+          - APPFRONT
+          - INTEGRATION
+      referenceId:
+        type: string
+        description: The identifier of the loyalty program discount that is recognized by the loyalty program service provider. The Toast POS system transmits the discount identifier to the service provider to determine the validity and amount of the discount.
+  Refund:
+    type: object
+    description: A discount applied to a check or item.
+    properties:
+      refundAmount:
+        type: number
+        format: double
+        description: The amount of the refund excluding the tip.
+      tipRefundAmount:
+        type: number
+        format: double
+        description: The amount of the tip refund.
+      refundDate:
+        description: |
+          The date and time the refund was made. <a 
+              href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+              ISO 8601 date and time format for all Toast APIs.</a>
+        type: string
+        format: date-time
+      refundBusinessDate:
+        description: |
+          The business date (yyyyMMdd) on which this refund was 
+          created.
+        type: integer
+  Device:
+    type: object
+    description: The *Device ID* value that the Toast POS system assigns to a specific Toast POS device. The `id` value is a unique identifier for a device. To find the ID for a Toast POS device, do the following. From the overflow  menu (⋮) select *Device Status* and then select the *Device* tab.
+    properties:
+      id:
+        type: string
+        description: The physical ID of the device
+  VoidInformation:
+    type: object
+    description: Information about a void applied to a check or item.
+    properties:
+      voidUser:
+        type: object
+        description: The user who voided the order.
+        $ref: '#/definitions/ExternalReference'
+      voidApprover:
+        type: object
+        description: The user who approved the void.
+        $ref: '#/definitions/ExternalReference'
+      voidDate:
+        description: |
+          The date on which the refund was made. <a 
+          href="https://doc.toasttab.com/doc/devguide/api_dates_and_timestamps.html">Use 
+          ISO 8601 date and time format for all Toast APIs.</a>
+        type: string
+        format: date-time
+      voidBusinessDate:
+        description: |
+          The business date (yyyyMMdd) on which this void was made.
+        type: integer
+      voidReason:
+        type: object
+        description: A reference to the configured `voidReason` that this void corresponds to.
+        $ref: '#/definitions/ExternalReference'
+  ExternalReference:
+    type: object
+    description: A wrapper object with fields that allow reference to a Toast entity by Toast GUID or a integration's identifier.
+    allOf:
+      - $ref: '#/definitions/ToastReference'
+      - type: object
+        properties:
+          externalId:
+            description: External identifier string that is prefixed by the naming authority.
+            type: string
+  ToastReference:
+    type: object
+    description: A wrapper object with fields that allow reference to a Toast entity by Toast GUID.
+    required:
+      - guid
+      - entityType
+    properties:
+      guid:
+        description: The GUID maintained by Toast.
+        type: string
+      entityType:
+        description: The type of object this is.
+        type: string

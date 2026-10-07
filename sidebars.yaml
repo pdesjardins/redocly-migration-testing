@@ -67,5 +67,17 @@
   selectFirstItemOnExpand: true
   items:
     - page: ./openapi/stock.yaml
-
+- separator: API specifications
+- group: Gift cards integration specification
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/giftcards.yaml
+- group: Loyalty integration specification
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/loyalty.yaml
+- group: Tender integration specification
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/tender.yaml
   
