@@ -1,0 +1,16 @@
+{
+  "name": "toast-api-reference",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Toast API reference docs",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx @redocly/cli preview -p 3000",
+    "build": "npx @redocly/cli preview -p 3000",
+    "bundle": "npx @redocly/cli bundle",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@redocly/redoc-revel": "*"
+  }
+}

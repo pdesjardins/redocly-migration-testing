@@ -1,0 +1,83 @@
+- page: index.md
+- group: Analytics
+  items:
+    - page: ./openapi/analytics.yaml
+  selectFirstItemOnExpand: true
+- group: Authentication
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/authentication.yaml
+- group: Cash management
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/cashmanagement.yaml
+- group: Configuration
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/configuration.yaml
+- group: Credit cards
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/creditcards.yaml
+- group: Device details
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/devicedetails.yaml
+- group: Kitchen
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/creditcards.yaml
+- group: Labor
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/labor.yaml
+- group: Menus V2
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/menus.yaml
+- group: Menus V3
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/menusv3.yaml
+- group: Order management configuration
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/ordermgmt.configuration.yaml
+- group: Orders
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/orders.yaml
+- group: Packaging configuration
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/packaging.yaml
+- group: Partners
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/partners.yaml
+- group: Restaurant availability
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/rx.availability.service.yaml
+- group: Restaurants
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/restaurants.yaml
+- group: Stock
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/stock.yaml
+- separator: API specifications
+- group: Gift cards integration specification
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/giftcards.yaml
+- group: Loyalty integration specification
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/loyalty.yaml
+- group: Tender integration specification
+  selectFirstItemOnExpand: true
+  items:
+    - page: ./openapi/tender.yaml
+  
