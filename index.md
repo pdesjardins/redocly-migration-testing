@@ -1,5 +1,8 @@
 ---
 title: API reference
+markdown:
+  lastUpdatedBlock:
+    hide: true
 ---
 
 # API reference
