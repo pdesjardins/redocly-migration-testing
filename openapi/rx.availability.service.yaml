@@ -1,0 +1,89 @@
+swagger: '2.0'
+info:
+  version: 1.0.1
+  title: Restaurant Availability Service API
+  description: Returns a restaurant's availability to accept online orders.
+  contact:
+    name: Toast developer support
+host: toast-api-server
+basePath: /restaurant-availability/v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /availability:
+    get:
+      operationId: availabilityGet
+      summary: Get online ordering availability
+      description: |
+        Returns a restaurant's current availability to accept online orders. A restaurant's availability is either `ONLINE` or `OFFLINE`. When a restaurant is offline, you can still place orders via the orders API, however Toast support recommends waiting until the restaurant's status is online.
+      tags:
+        - availability
+      produces:
+        - application/json
+      parameters:
+        - name: Toast-Restaurant-External-ID
+          description: The Toast platform GUID of the restaurant that is the context for this operation.
+          in: header
+          required: true
+          type: string
+          x-example: 00000000-05f4-55a4-0000-0000020f4be3
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/RestaurantAvailability'
+      security:
+        - oauth2:
+            - restaurants:read
+definitions:
+  RestaurantAvailability:
+    type: object
+    description: |
+      A representation of the restaurant's online ordering availability.
+    properties:
+      restaurantGuid:
+        description: |
+          The Toast platform GUID of the restaurant location.
+        type: string
+      status:
+        description: |
+          The restaurant's online ordering availability status. The `status` value can be: 
+          * `ONLINE` - The restaurant's auto-fire device is approving online orders. 
+          * `OFFLINE` - The restaurant's auto-fire device has stopped approving online orders.
+        type: string
+        enum:
+          - ONLINE
+          - OFFLINE
+      reasonKey:
+        description: |
+          The machine-readable reason why the restaurant is available or unavailable to accept online orders. The `reasonKey` value can be: 
+          * `AVAILABILITY_ONLINE` 
+          * `AVAILABILITY_OFFLINE`
+        type: string
+        enum:
+          - AVAILABILITY_ONLINE
+          - AVAILABILITY_OFFLINE
+      reason:
+        description: |
+          The human-readable reason why the restaurant is available or unavailable to accept online orders.
+        type: string
+securityDefinitions:
+  oauth2:
+    description: |
+      Access to Toast APIs, specific endpoints, 
+      and specific API endpoint operations is 
+      controlled by the scopes that are associated 
+      with your API account. 
+      A full reference for Toast API scopes and 
+      their capabilities can be found in the
+      [_Toast Developer Guide_](https://doc.toasttab.com/doc/devguide/apiScopes.html).
+    type: oauth2
+    tokenUrl: https://toast-api-server/authentication/v1/authentication/login
+    flow: application
+    scopes:
+      restaurants:read: |
+        Allows reading from the restaurant availability API.

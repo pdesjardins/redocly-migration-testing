@@ -22,14 +22,57 @@ navbar:
 #       dislikeLabel: What can we improve?
 
 apis:
-  authentication:
-    # root: './toast-authentication-api.yaml'
-    # url: 'https://doc.toasttab.com/toast-api-specifications/toast-authentication-api.yaml'
-    root: 'https://doc.toasttab.com/toast-api-specifications/toast-authentication-api.yaml'
   analytics:
     root: 'https://doc.toasttab.com/toast-api-specifications/toast-reporting-api.yaml'
+    output: ./openapi/analytics.yaml
+  authentication:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-authentication-api.yaml'
+    output: ./openapi/authentication.yaml
   cash-management:
     root: 'https://doc.toasttab.com/toast-api-specifications/toast-cashmgmt-api.yaml'
+    output: ./openapi/cashmanagement.yaml
+  configuration:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-config-api.yaml'
+    output: ./openapi/configuration.yaml
+  credit-cards:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-ccpartner-api.yaml'
+    output: ./openapi/creditcards.yaml
+  device-details:
+    root: 'https://doc.toasttab.com/toast-api-specifications/device-details-api.yaml'
+    output: ./openapi/devicedetails.yaml
+  kitchen:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-kitchen-api-docs.yaml'
+    output: ./openapi/kitchen.yaml
+  labor:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-labor-api.yaml'
+    output: ./openapi/labor.yaml
+  menus:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-menus-api.yaml'
+    output: ./openapi/menus.yaml
+  menus-v3:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-menus-api-v3.yaml'
+    output: ./openapi/menusv3.yaml
+  order-management-configuration:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-ordermgmt-config-api-docs.yaml'
+    output: ./openapi/ordermgmt.configuration.yaml
+  orders:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-orders-api.yaml'
+    output: ./openapi/orders.yaml
+  packaging-configuration:
+    root: 'https://doc.toasttab.com/toast-api-specifications/packaging-api.yaml'
+    output: ./openapi/packaging.yaml
+  partners:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-partners-api.yaml'
+    output: ./openapi/partners.yaml
+  restaurant-availability:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-restaurant-availability-api-docs.yaml'
+    output: ./openapi/rx.availability.service.yaml
+  restaurants:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-restaurants-api.yaml'
+    output: ./openapi/restaurants.yaml
+  stock:
+    root: 'https://doc.toasttab.com/toast-api-specifications/toast-stock-api.yaml'
+    output: ./openapi/stock.yaml
 
 # extends:
 #   - recommended

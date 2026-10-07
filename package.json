@@ -5,9 +5,10 @@
   "description": "Toast API reference docs",
   "license": "MIT",
   "scripts": {
-    "start": "redocly-portal develop -p 3000",
-    "build": "redocly-portal build",
-    "clean": "redocly-portal clean"
+    "start": "npx @redocly/cli preview -p 3000",
+    "build": "npx @redocly/cli preview -p 3000",
+    "bundle": "npx @redocly/cli bundle",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@redocly/redoc-revel": "*"

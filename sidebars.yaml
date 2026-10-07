@@ -1,35 +1,54 @@
 - page: index.md
 - group: Analytics
   items:
-    - page: ./analytics
+    - page: ./openapi/analytics.yaml
 - group: Authentication
   items:
-    - page: toast-authentication-api.yaml
+    - page: ./openapi/authentication.yaml
 - group: Cash management
   items:
-    - page: ./cash-management
-# api-reference:
-#   - page: index.md
-#   - page: analytics.reference.page.yaml
-#   - page: authentication.reference.page.yaml
-#   - page: cashmanagement.reference.page.yaml
-#   - page: configuration.reference.page.yaml
-#   - page: creditcards.reference.page.yaml
-#   - page: devicedetails.reference.page.yaml
-#   - page: kitchen.reference.page.yaml
-#   - page: labor.reference.page.yaml
-#   - page: menus.reference.page.yaml
-#   - page: menusV3.reference.page.yaml
-#   - page: ordermgmt.configuration.reference.page.yaml
-#   - page: orders.reference.page.yaml
-#   - page: packaging.reference.page.yaml
-#   - page: partners.reference.page.yaml
-#   - page: rx.availability.service.reference.page.yaml
-#   - page: restaurants.reference.page.yaml
-#   - page: stock.reference.page.yaml
-#   - separator: API specifications 
-#   - page: giftcards.reference.page.yaml
-#   - page: loyalty.reference.page.yaml
-#   - page: tender.reference.page.yaml
+    - page: ./openapi/cashmanagement.yaml
+- group: Configuration
+  items:
+    - page: ./openapi/configuration.yaml
+- group: Credit cards
+  items:
+    - page: ./openapi/creditcards.yaml
+- group: Device details
+  items:
+    - page: ./openapi/devicedetails.yaml
+- group: Kitchen
+  items:
+    - page: ./openapi/creditcards.yaml
+- group: Labor
+  items:
+    - page: ./openapi/labor.yaml
+- group: Menus V2
+  items:
+    - page: ./openapi/menus.yaml
+- group: Menus V3
+  items:
+    - page: ./openapi/menusv3.yaml
+- group: Order management configuration
+  items:
+    - page: ./openapi/ordermgmt.configuration.yaml
+- group: Orders
+  items:
+    - page: ./openapi/orders.yaml
+- group: Packaging configuration
+  items:
+    - page: ./openapi/packaging.yaml
+- group: Partners
+  items:
+    - page: ./openapi/partners.yaml
+- group: Restaurant availability
+  items:
+    - page: ./openapi/rx.availability.service.yaml
+- group: Restaurants
+  items:
+    - page: ./openapi/restaurants.yaml
+- group: Stock
+  items:
+    - page: ./openapi/stock.yaml
 
   
