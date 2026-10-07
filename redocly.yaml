@@ -21,6 +21,8 @@ navbar:
 #       likeLabel: What was most helpful?
 #       dislikeLabel: What can we improve?
 
+openapi:
+  schemaDefinitionsTagName: Data definitions
 apis:
   analytics:
     root: 'https://doc.toasttab.com/toast-api-specifications/toast-reporting-api.yaml'
